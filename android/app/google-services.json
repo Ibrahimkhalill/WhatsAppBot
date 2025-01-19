@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "748686934785",
+    "firebase_url": "https://chatbot-1833c-default-rtdb.firebaseio.com",
+    "project_id": "chatbot-1833c",
+    "storage_bucket": "chatbot-1833c.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:748686934785:android:b892fc8343761ee2dd5100",
+        "android_client_info": {
+          "package_name": "com.example.test_pk"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBCgZHNJyTozFcrI14ISEOoa8x1pWX_B4E"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
