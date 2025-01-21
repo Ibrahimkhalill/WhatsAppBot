@@ -12,11 +12,12 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final FirebaseFirestore firestore = FirebaseFirestore.instance;
+  final TextEditingController _searchController = TextEditingController();
+  String _searchQuery = '';
 
   // Function to format timestamp
   String formatTimestamp(Timestamp timestamp) {
-    final DateTime dateTime =
-        timestamp.toDate(); // Convert Timestamp to DateTime
+    final DateTime dateTime = timestamp.toDate();
     return DateFormat('hh:mm a').format(dateTime); // e.g., "11:52 PM"
   }
 
@@ -42,59 +43,99 @@ class _HomeScreenState extends State<HomeScreen> {
                   const SizedBox(width: 8),
                   Expanded(
                     child: TextField(
+                      controller: _searchController,
+                      onChanged: (value) {
+                        setState(() {
+                          _searchQuery = value.toLowerCase();
+                        });
+                      },
                       decoration: const InputDecoration(
-                        hintText: 'Search',
+                        hintText: 'Search by name or number',
                         hintStyle: TextStyle(color: Colors.grey),
                         border: InputBorder.none,
                       ),
                       style: const TextStyle(color: Colors.white),
                     ),
                   ),
+                  if (_searchQuery.isNotEmpty)
+                    IconButton(
+                      icon: const Icon(Icons.clear, color: Colors.grey),
+                      onPressed: () {
+                        setState(() {
+                          _searchQuery = '';
+                          _searchController.clear();
+                        });
+                      },
+                    ),
                 ],
               ),
             ),
             const SizedBox(height: 10),
 
-            // Chat List (StreamBuilder with Icon Condition)
+            // Chat List (StreamBuilder with Search Logic)
             Expanded(
               child: StreamBuilder<QuerySnapshot>(
                 stream: firestore
                     .collection('conversations')
                     .orderBy('timestamp', descending: true)
-                    .snapshots(), // Realtime data stream
+                    .snapshots(),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     return const Center(child: CircularProgressIndicator());
                   }
+
+                  if (snapshot.hasError) {
+                    return const Center(
+                      child: Text('Error loading conversations'),
+                    );
+                  }
+
                   if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
                     return const Center(
-                        child: Text('No Conversations Found',
-                            style: TextStyle(color: Colors.white)));
+                      child: Text('No Conversations Found',
+                          style: TextStyle(color: Colors.white)),
+                    );
                   }
 
                   // Map to store unique users
                   final Map<String, Map<String, dynamic>> uniqueUsers = {};
 
                   for (var doc in snapshot.data!.docs) {
-                    final data = doc.data() as Map<String, dynamic>;
-                    final from = data['from'];
-                    if (!uniqueUsers.containsKey(from)) {
-                      uniqueUsers[from] = {
-                        'from': from,
-                        'name': data['name'],
-                        'lastMessage': data['content'] ?? data['type'],
-                        'type':
-                            data['type'], // Type of message (text, image, etc.)
-                        'timestamp':
-                            data['timestamp'], // Keep Timestamp as it is
-                      };
+                    try {
+                      final data = doc.data() as Map<String, dynamic>;
+                      final from = data['from'];
+                      final name = data['name'] ?? 'Unknown';
+
+                      if (from != null && !uniqueUsers.containsKey(from)) {
+                        uniqueUsers[from] = {
+                          'from': from,
+                          'name': name,
+                          'lastMessage': data['content'] ?? data['type'] ?? '',
+                          'type': data['type'] ?? 'unknown',
+                          'timestamp': data['timestamp'] ?? Timestamp.now(),
+                        };
+                      }
+                    } catch (e) {
+                      print('Error parsing document: $e');
                     }
                   }
 
-                  // Convert map to list and sort by timestamp
-                  final userList = uniqueUsers.values.toList()
+                  // Convert map to list and filter by search query
+                  final userList = uniqueUsers.values.where((user) {
+                    final name = user['name'].toLowerCase();
+                    final number = user['from'].toLowerCase();
+                    return name.contains(_searchQuery) ||
+                        number.contains(_searchQuery);
+                  }).toList()
                     ..sort((a, b) => (b['timestamp'] as Timestamp)
                         .compareTo(a['timestamp'] as Timestamp));
+
+                  if (userList.isEmpty) {
+                    return const Center(
+                      child: Text('No Results Found',
+                          style: TextStyle(color: Colors.white)),
+                    );
+                  }
 
                   return ListView.builder(
                     itemCount: userList.length,
@@ -112,9 +153,12 @@ class _HomeScreenState extends State<HomeScreen> {
                       } else if (user['type'] == 'video') {
                         messageIcon =
                             const Icon(Icons.videocam, color: Colors.grey);
-                      } else if (user['type'] == 'file') {
+                      } else if (user['type'] == 'document') {
                         messageIcon =
                             const Icon(Icons.attach_file, color: Colors.grey);
+                      } else if (user['type'] == 'sticker') {
+                        messageIcon = const Icon(Icons.emoji_emotions,
+                            color: Colors.grey);
                       } else {
                         messageIcon = null; // No icon for text messages
                       }
@@ -237,7 +281,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
           if (permission.isGranted) {
             Navigator.push(
-              // ignore: use_build_context_synchronously
               context,
               MaterialPageRoute(
                 builder: (context) => ContactListPage(),

@@ -18,6 +18,8 @@ class ReplyContextWidget extends StatelessWidget {
 
     Widget replyContent;
 
+    print(swipedMessage);
+
     // Dynamically display the content based on the type
     switch (swipedMessage['type']) {
       case 'text':
@@ -78,14 +80,14 @@ class ReplyContextWidget extends StatelessWidget {
         );
         break;
 
-      case 'file':
+      case 'document':
         replyContent = Row(
           children: [
             const Icon(Icons.insert_drive_file, color: Colors.white70),
             const SizedBox(width: 5),
             Expanded(
               child: Text(
-                swipedMessage['fileName'] ?? 'File',
+                swipedMessage['content'],
                 style: const TextStyle(
                     color: Colors.white70, overflow: TextOverflow.ellipsis),
               ),
