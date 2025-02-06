@@ -19,36 +19,53 @@ Future<bool> _requestStoragePermission() async {
 }
 
 Future<void> downloadAndOpenDocument(String url) async {
-  try {
-    final permissionGranted = await _requestStoragePermission();
-    if (!permissionGranted) {
-      print('Storage permission denied');
+  final permissionGranted = await _requestStoragePermission();
+  if (!permissionGranted) {
+    print('Storage permission denied');
+    return;
+  }
+
+  // Get the Downloads directory for Android
+  final downloadsDirectory = Directory('/storage/emulated/0/Download');
+  if (!downloadsDirectory.existsSync()) {
+    downloadsDirectory.createSync();
+  }
+
+  // Extract the file name and file extension from the URL
+  final fileName = url.split('/').last;
+  final fileExtension = fileName.split('.').last.toLowerCase();
+
+  // Check if the file is an audio or video file
+  const audioExtensions = ['mp3', 'wav', 'aac', 'flac', 'ogg'];
+  const videoExtensions = ['mp4', 'avi', 'mov', 'mkv', 'webm'];
+
+  if (audioExtensions.contains(fileExtension) ||
+      videoExtensions.contains(fileExtension)) {
+    print('Audio or video files are not supported for opening.');
+    return;
+  }
+
+  // Define the file path
+  final filePath = '${downloadsDirectory.path}/$fileName';
+
+  // Check if the file already exists
+  if (!File(filePath).existsSync()) {
+    try {
+      // Download the file using Dio
+      print('Downloading file...');
+      final dio = Dio();
+      await dio.download(url, filePath);
+      print('File downloaded to: $filePath');
+    } catch (e) {
+      print('Error downloading file: $e');
       return;
     }
+  }
 
-    // Get the Downloads directory for Android
-    final downloadsDirectory = Directory('/storage/emulated/0/Download');
-    if (!downloadsDirectory.existsSync()) {
-      downloadsDirectory.createSync();
-    }
+  // Open the file using OpenFilex
+  final result = await OpenFilex.open(filePath);
 
-    // Extract the file name from the URL
-    final fileName = url.split('/').last;
-    final filePath = '${downloadsDirectory.path}/$fileName';
-
-    // Download the file using Dio
-    Dio dio = Dio();
-    await dio.download(url, filePath);
-
-    print('File saved to $filePath');
-
-    // Open the file using OpenFilex
-    final result = await OpenFilex.open(filePath);
-
-    if (result.type != ResultType.done) {
-      print('Error opening file: ${result.message}');
-    }
-  } catch (e) {
-    print('Error downloading or opening file: $e');
+  if (result.type != ResultType.done) {
+    print('Error opening file: ${result.message}');
   }
 }

@@ -156,6 +156,10 @@ class _HomeScreenState extends State<HomeScreen> {
                       } else if (user['type'] == 'document') {
                         messageIcon =
                             const Icon(Icons.attach_file, color: Colors.grey);
+                      } else if (user['type'] == 'template') {
+                        messageIcon = const Icon(
+                            Icons.document_scanner_outlined,
+                            color: Colors.grey);
                       } else if (user['type'] == 'sticker') {
                         messageIcon = const Icon(Icons.emoji_emotions,
                             color: Colors.grey);

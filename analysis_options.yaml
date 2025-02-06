@@ -13,6 +13,8 @@ analyzer:
     depend_on_referenced_packages: ignore
     prefer_const_constructors_in_immutables: ignore
     library_private_types_in_public_api: ignore
+    unnecessary_cast: ignore
+    unnecessary_null_comparison: ignore
 include: package:flutter_lints/flutter.yaml
 
 linter:

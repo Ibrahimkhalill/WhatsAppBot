@@ -86,7 +86,7 @@ class _ContactListPageState extends State<ContactListPage> {
                           child: Icon(Icons.person, color: Colors.white),
                         ),
                         title: Text(
-                          contact.displayName ?? 'No Name',
+                          contact.displayName,
                           style: const TextStyle(color: Colors.white),
                         ),
                         subtitle: const Text(
@@ -103,7 +103,7 @@ class _ContactListPageState extends State<ContactListPage> {
                           MaterialPageRoute(
                             builder: (context) => Chat(
                               userId: contact.phones.first.number,
-                              userName: contact.displayName ?? 'Unknown',
+                              userName: contact.displayName,
                             ),
                           ),
                         );
@@ -119,7 +119,7 @@ class _ContactListPageState extends State<ContactListPage> {
                           ),
                         ),
                         title: Text(
-                          contact.displayName ?? 'No Name',
+                          contact.displayName,
                           style: const TextStyle(color: Colors.white),
                         ),
                         subtitle: Text(

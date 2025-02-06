@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart'; // Firestore dependency
-import 'package:whatapp/chat.dart'; // Import VideoPlayerWidget
+import 'package:whatapp/chat.dart';
+import 'package:whatapp/video_player.dart'; // Import VideoPlayerWidget
 
 class VideoList extends StatefulWidget {
   final String phoneNumber; // Phone number for filtering

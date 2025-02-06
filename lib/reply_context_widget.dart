@@ -1,25 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:whatapp/audio.dart';
-import 'package:whatapp/chat.dart';
+import 'package:whatapp/video_player.dart';
 
 class ReplyContextWidget extends StatelessWidget {
   final Map<String, dynamic> swipedMessage;
   final VoidCallback onClose;
 
   const ReplyContextWidget({
-    Key? key,
+    super.key,
     required this.swipedMessage,
     required this.onClose,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
     if (swipedMessage.isEmpty) return const SizedBox.shrink();
 
     Widget replyContent;
-
-    print(swipedMessage);
-
+    print(swipedMessage['content']);
     // Dynamically display the content based on the type
     switch (swipedMessage['type']) {
       case 'text':
@@ -87,7 +85,7 @@ class ReplyContextWidget extends StatelessWidget {
             const SizedBox(width: 5),
             Expanded(
               child: Text(
-                swipedMessage['content'],
+                swipedMessage['fileName'],
                 style: const TextStyle(
                     color: Colors.white70, overflow: TextOverflow.ellipsis),
               ),

@@ -18,31 +18,34 @@ Widget buildImageWidget(String imageUrl) {
         ),
 
         // Actual image
-        Image.network(
-          imageUrl,
-          width: 200, // Fixed width
-          height: 200, // Fixed height
-          fit: BoxFit.cover, // Cover the box without distortion
-          loadingBuilder: (context, child, loadingProgress) {
-            if (loadingProgress == null) {
-              // Remove shimmer and show image when loaded
-              return child;
-            }
-            return const SizedBox
-                .shrink(); // Show shimmer until loading completes
-          },
-          errorBuilder: (context, error, stackTrace) {
-            // Show error placeholder if image fails to load
-            return Container(
-              width: 200,
-              height: 200,
-              color: Colors.grey.shade300,
-              child: const Center(
-                child: Icon(Icons.image_not_supported,
-                    color: Colors.grey, size: 50),
-              ),
-            );
-          },
+        SizedBox(
+          width: 200,
+          height: 200,
+          child: Image.network(
+            imageUrl,
+
+            fit: BoxFit.cover, // Cover the box without distortion
+            loadingBuilder: (context, child, loadingProgress) {
+              if (loadingProgress == null) {
+                // Remove shimmer and show image when loaded
+                return child;
+              }
+              return const SizedBox
+                  .shrink(); // Show shimmer until loading completes
+            },
+            errorBuilder: (context, error, stackTrace) {
+              // Show error placeholder if image fails to load
+              return Container(
+                width: 200,
+                height: 200,
+                color: Colors.grey.shade300,
+                child: const Center(
+                  child: Icon(Icons.image_not_supported,
+                      color: Colors.grey, size: 50),
+                ),
+              );
+            },
+          ),
         ),
 
         // Overlay text or spinner while loading
