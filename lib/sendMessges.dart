@@ -62,7 +62,7 @@ Future<void> sendTextMessage(
 Future<void> sendReactionMessges(String reaction, String userPhoneNumber,
     String name, String messageId) async {
   final Dio dio = Dio();
-
+  print('Text message sent successfully: $messageId');
   try {
     final response = await dio.post(
       'https://evidently-deciding-insect.ngrok-free.app/send-reaction', // Replace with your API endpoint
@@ -141,6 +141,3 @@ Future<void> uploadTemplates(
     print('Error sending text message: $e');
   }
 }
-
-
-

@@ -2,21 +2,22 @@ import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:swipe_to/swipe_to.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:whatapp/CircularDownloadIndicatorState.dart';
-import 'package:whatapp/ImageDisplay.dart';
-import 'package:whatapp/Reaction.dart';
-import 'package:whatapp/ReplyMessageWidget.dart';
-import 'package:whatapp/audio.dart';
-import 'package:whatapp/audio_list.dart';
-import 'package:whatapp/buildTemplateItem.dart';
-import 'package:whatapp/dowload.dart';
-import 'package:whatapp/reply_context_widget.dart';
-import 'package:whatapp/sendMessges.dart';
-import 'package:whatapp/templates.dart';
-import 'package:whatapp/video_player.dart';
-import 'voice_list.dart';
+import 'package:cargpt/CircularDownloadIndicatorState.dart';
+import 'package:cargpt/ImageDisplay.dart';
+import 'package:cargpt/Reaction.dart';
+import 'package:cargpt/ReplyMessageWidget.dart';
+import 'package:cargpt/audio.dart';
+import 'package:cargpt/audio_list.dart';
+import 'package:cargpt/buildTemplateItem.dart';
+import 'package:cargpt/dowload.dart';
+import 'package:cargpt/reply_context_widget.dart';
+import 'package:cargpt/sendMessges.dart';
+import 'package:cargpt/templates.dart';
+import 'package:cargpt/video_player.dart';
+import 'video_list.dart';
 import 'fileList.dart';
 import 'imagesList.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
@@ -170,6 +171,24 @@ class _ChatState extends State<Chat> {
     return "00:00"; // Default if timestamp is null
   }
 
+  String _formatDateTime(DateTime timestamp) {
+    // Format date as "10 Oct"
+    String formattedDate = DateFormat('d MMM yy').format(timestamp);
+
+    // Format time as "11:52 PM"
+
+    // Combine date and time
+    return "$formattedDate "; // e.g., "10 Oct 11:52 PM"
+  }
+
+  String _formatMessageDate(dynamic timestamp) {
+    if (timestamp is DateTime) {
+      return _formatDateTime(
+          timestamp); // Use the combined date and time format
+    }
+    return "00:00"; // Default if timestamp is null or invalid
+  }
+
   void _onReactionSelect(String reaction) async {
     setState(() {
       _messages.map((message) {
@@ -178,11 +197,12 @@ class _ChatState extends State<Chat> {
         }
         return _messages;
       }).toList();
-      selectedMessageId = null; // রিঅ্যাকশন সিলেক্ট করার পরে বক্স বন্ধ করা
     });
     await sendReactionMessges(
         reaction, widget.userId, widget.userName, selectedMessageId!);
-
+    setState(() {
+      selectedMessageId = null; // রিঅ্যাকশন সিলেক্ট করার পরে বক্স বন্ধ করা
+    });
     print('Selected Reaction 3: $_messages'); // For debugging
   }
 
@@ -203,10 +223,11 @@ class _ChatState extends State<Chat> {
   Widget _buildMessage(Map<String, dynamic> message) {
     double screenWidth =
         MediaQuery.of(context).size.width; // Get full screen width
-    double maxWidth = screenWidth * 0.8; // ✅ Limit width to 60% of screen
+    double maxWidth = screenWidth * 0.8; // Limit width to 60% of screen
     final bool isUser = message['sender'] == 'user';
     final String? reaction =
         message['reaction']; // Add reaction field in the message
+
     return GestureDetector(
       onTap: () => downloadAndOpenDocument(message['public_url']),
       onLongPress: () => _onLongPress(message['message_id']),
@@ -222,8 +243,8 @@ class _ChatState extends State<Chat> {
                   message['public_url'] ??
                   'No content', // Default content if all are null
               'fileName': message['fileName'] ?? 'unknown',
-              ''
-                  'type': message['type'] ?? 'unknown' // Default type if null
+
+              'type': message['type'] ?? 'unknown' // Default type if null
             };
           });
         },
@@ -236,8 +257,13 @@ class _ChatState extends State<Chat> {
                 constraints: BoxConstraints(maxWidth: maxWidth),
                 margin:
                     const EdgeInsets.symmetric(vertical: 12, horizontal: 10),
-                padding:
-                    const EdgeInsets.only(bottom: 5, left: 5, right: 5, top: 5),
+
+                padding: const EdgeInsets.only(
+                    bottom: 20,
+                    left: 5,
+                    right: 5,
+                    top:
+                        5), // Adjusted bottom padding to give space for reaction
                 decoration: BoxDecoration(
                   color:
                       isUser ? const Color(0xff244a37) : Colors.grey.shade800,
@@ -364,9 +390,10 @@ class _ChatState extends State<Chat> {
                   ),
                 ),
               ),
-              if (isUser) // Show status only for sent messages
+              if (isUser || !isUser) // Show status only for sent messages
                 Positioned(
-                  bottom: 17, // Align to bottom-right
+                  bottom: 18, // Align to bottom-right
+
                   right: 15,
                   child: Row(
                     children: [
@@ -411,8 +438,8 @@ class _ChatState extends State<Chat> {
                 ),
               if (reaction != null)
                 Positioned(
-                  bottom: -5, // Position below the message container
-                  right: 10, // Align to the bottom-right corner
+                  bottom: -1, // Ensure space for reaction
+                  right: 20, // Align to the bottom-right corner
                   child: Container(
                     width: 24,
                     height: 24,
@@ -796,6 +823,64 @@ class _ChatState extends State<Chat> {
       //       content: Text('An error occurred while saving contact!')),
       // );
     }
+  }
+
+  String _getMessageDateLabel(DateTime messageDate) {
+    final today = DateTime.now();
+    final yesterday = today.subtract(Duration(days: 1));
+
+    // Check if the message is today
+    if (_isSameDay(today, messageDate)) {
+      return "Today";
+    }
+    // Check if the message is yesterday
+    else if (_isSameDay(yesterday, messageDate)) {
+      return "Yesterday";
+    } else {
+      // Format the date (you can use any format you prefer)
+      return DateFormat('yyyy-MM-dd').format(messageDate);
+    }
+  }
+
+// Helper to compare if two dates are the same day
+  bool _isSameDay(DateTime date1, DateTime date2) {
+    return date1.year == date2.year &&
+        date1.month == date2.month &&
+        date1.day == date2.day;
+  }
+
+  List<Widget> _buildMessageList() {
+    List<Widget> messageWidgets = [];
+    DateTime? lastMessageDate;
+
+    for (var message in _messages) {
+      DateTime messageDate =
+          DateTime.fromMillisecondsSinceEpoch(message['timestamp']);
+      String dateLabel = _getMessageDateLabel(messageDate);
+
+      // Add the date label if it's different from the last message's date
+      if (lastMessageDate == null ||
+          !_isSameDay(lastMessageDate, messageDate)) {
+        messageWidgets.add(
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8.0),
+            child: Text(
+              dateLabel,
+              style: const TextStyle(
+                  color: Colors.white70,
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold),
+            ),
+          ),
+        );
+      }
+
+      messageWidgets
+          .add(_buildMessage(message)); // Add the actual message widget
+      lastMessageDate = messageDate; // Update the last message date
+    }
+
+    return messageWidgets;
   }
 
   @override

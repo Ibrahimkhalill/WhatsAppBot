@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:whatapp/audio.dart';
-import 'package:whatapp/video_player.dart';
+import 'package:get_thumbnail_video/index.dart';
+import 'package:get_thumbnail_video/video_thumbnail.dart';
+import 'package:cargpt/audio.dart';
+import 'package:cargpt/video_player.dart';
+import 'package:path_provider/path_provider.dart';
+import 'dart:io';
 
-class ReplyContextWidget extends StatelessWidget {
+class ReplyContextWidget extends StatefulWidget {
   final Map<String, dynamic> swipedMessage;
   final VoidCallback onClose;
 
@@ -13,59 +17,123 @@ class ReplyContextWidget extends StatelessWidget {
   });
 
   @override
+  _ReplyContextWidgetState createState() => _ReplyContextWidgetState();
+}
+
+class _ReplyContextWidgetState extends State<ReplyContextWidget> {
+  String? _videoThumbnailPath;
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.swipedMessage['type'] == 'video') {
+      _generateVideoThumbnail(widget.swipedMessage['content']);
+    }
+  }
+
+  // Generate a video thumbnail using get_thumbnail_video
+  Future<void> _generateVideoThumbnail(String videoUrl) async {
+    try {
+      final tempDir = await getTemporaryDirectory();
+      final thumbnailFile = await VideoThumbnail.thumbnailFile(
+        video: videoUrl,
+        thumbnailPath: tempDir.path,
+        imageFormat: ImageFormat.WEBP,
+        maxHeight: 100, // specify the height of the thumbnail
+        quality: 75,
+      );
+
+      if (thumbnailFile != null) {
+        setState(() {
+          _videoThumbnailPath = thumbnailFile.path;
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      print("❌ Error generating thumbnail: $e");
+      setState(() {
+        _isLoading = false; // Stop loading in case of error
+      });
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    if (swipedMessage.isEmpty) return const SizedBox.shrink();
+    if (widget.swipedMessage.isEmpty) return const SizedBox.shrink();
 
     Widget replyContent;
-    print(swipedMessage['content']);
-    // Dynamically display the content based on the type
-    switch (swipedMessage['type']) {
+
+    switch (widget.swipedMessage['type']) {
       case 'text':
         replyContent = Text(
-          'Replying to: ${swipedMessage['content']}',
+          'Replying to: ${widget.swipedMessage['content']}',
           style: const TextStyle(color: Colors.white70),
         );
         break;
 
       case 'image':
-        // replyContent =
         replyContent = Row(
           children: [
-            const Icon(Icons.image,
-                color: Colors.white70, size: 24), // Video icon
-            const SizedBox(width: 5), // Spacer
-            const Text(
-              'Images',
-              style: TextStyle(color: Colors.white70, fontSize: 14),
-            ),
-
-            const Spacer(), // Push the video box to the right
+            const Icon(Icons.image, color: Colors.white70, size: 24),
+            const SizedBox(width: 5),
+            const Text('Images',
+                style: TextStyle(color: Colors.white70, fontSize: 14)),
+            const Spacer(),
             Image.network(
-              swipedMessage['content'],
+              widget.swipedMessage['content'],
               width: 50,
               height: 50,
               fit: BoxFit.contain,
-            )
+            ),
           ],
         );
         break;
 
       case 'video':
+        // Show video thumbnail first only
         replyContent = Row(
           children: [
-            const Icon(Icons.videocam,
-                color: Colors.white70, size: 24), // Video icon
-            const SizedBox(width: 5), // Spacer
-            const Text(
-              'Video',
-              style: TextStyle(color: Colors.white70, fontSize: 14),
-            ),
-            const Spacer(), // Push the video box to the right
-            SizedBox(
-              width: 60,
-              height: 60,
-              child: VideoPlayerWidget(videoUrl: swipedMessage['content']),
-            ),
+            const Icon(Icons.videocam, color: Colors.white70, size: 24),
+            const SizedBox(width: 5),
+            const Text('Video',
+                style: TextStyle(color: Colors.white70, fontSize: 14)),
+            const Spacer(),
+            _isLoading
+                ? SizedBox(
+                    width: 24, // Set the width
+                    height: 24, // Set the height
+                    child: const CircularProgressIndicator(),
+                  )
+                : GestureDetector(
+                    onTap: () {
+                      // When tapped, open the video player
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => VideoPlayerWidget(
+                              videoUrl: widget.swipedMessage['content']),
+                        ),
+                      );
+                    },
+                    child: SizedBox(
+                      width: 60,
+                      height: 60,
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: _videoThumbnailPath != null
+                            ? Image.file(
+                                File(_videoThumbnailPath!),
+                                fit: BoxFit.cover,
+                              )
+                            : Container(
+                                color: Colors.black,
+                                child: const Icon(Icons.videocam,
+                                    color: Colors.white),
+                              ),
+                      ),
+                    ),
+                  ),
           ],
         );
         break;
@@ -74,7 +142,7 @@ class ReplyContextWidget extends StatelessWidget {
         replyContent = SizedBox(
           width: 100,
           height: 42,
-          child: AudioPlayerWidget(audioUrl: swipedMessage['content']),
+          child: AudioPlayerWidget(audioUrl: widget.swipedMessage['content']),
         );
         break;
 
@@ -85,7 +153,22 @@ class ReplyContextWidget extends StatelessWidget {
             const SizedBox(width: 5),
             Expanded(
               child: Text(
-                swipedMessage['fileName'],
+                widget.swipedMessage['fileName'],
+                style: const TextStyle(
+                    color: Colors.white70, overflow: TextOverflow.ellipsis),
+              ),
+            ),
+          ],
+        );
+        break;
+      case 'template':
+        replyContent = Row(
+          children: [
+            const Icon(Icons.document_scanner_outlined, color: Colors.white70),
+            const SizedBox(width: 5),
+            Expanded(
+              child: Text(
+                widget.swipedMessage['content'],
                 style: const TextStyle(
                     color: Colors.white70, overflow: TextOverflow.ellipsis),
               ),
@@ -102,7 +185,7 @@ class ReplyContextWidget extends StatelessWidget {
     }
 
     return Positioned(
-      bottom: 200, // Adjust this distance as needed
+      bottom: 200,
       left: 10,
       right: 10,
       child: Container(
@@ -123,7 +206,7 @@ class ReplyContextWidget extends StatelessWidget {
             Expanded(child: replyContent),
             IconButton(
               icon: const Icon(Icons.close, color: Colors.white70),
-              onPressed: onClose,
+              onPressed: widget.onClose,
             ),
           ],
         ),

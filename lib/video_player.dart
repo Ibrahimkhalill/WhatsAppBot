@@ -26,9 +26,6 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
     super.initState();
     _controller = VideoPlayerController.network(widget.videoUrl)
       ..initialize().then((_) {
-        setState(() {
-          _isLoading = false;
-        });
         _generateVideoThumbnail(widget.videoUrl); // Generate thumbnail
       });
   }
@@ -66,13 +63,15 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
           video: localVideoPath,
           thumbnailPath: tempDir.path,
           imageFormat: ImageFormat.JPEG,
-          maxHeight: 64,
+          maxHeight: 100,
           quality: 75,
         );
 
-        if (thumbnailPath != null) {
+        // Check if the widget is still mounted before calling setState
+        if (mounted && thumbnailPath != null) {
           setState(() {
             _videoThumbnailPath = thumbnailPath.path;
+            _isLoading = false;
           });
           debugPrint("✅ Thumbnail generated at: $_videoThumbnailPath");
         }

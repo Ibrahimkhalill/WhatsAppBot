@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
-import 'package:whatapp/chat.dart';
+import 'package:cargpt/chat.dart';
 
 class ContactListPage extends StatefulWidget {
   @override

@@ -10,7 +10,7 @@
 analyzer:
   errors:
     deprecated_member_use: ignore
-    depend_on_referenced_packages: ignore
+    depend_on_referenced_packages: ignore ignore
     prefer_const_constructors_in_immutables: ignore
     library_private_types_in_public_api: ignore
     unnecessary_cast: ignore

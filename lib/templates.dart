@@ -73,6 +73,7 @@ class _CatalogState extends State<Catalog> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text("✅ Template sent successfully!")),
         );
+        Navigator.pop(context);
       } else {
         throw Exception("Failed to send template");
       }

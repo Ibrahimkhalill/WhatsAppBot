@@ -30,24 +30,35 @@ class _ReplyMessageWidgetState extends State<ReplyMessageWidget> {
   Future<void> _generateVideoThumbnail(String videoUrl) async {
     try {
       // ✅ Step 2: Generate thumbnail from local file
-      XFile thumbnailFile = await VideoThumbnail.thumbnailFile(
+      XFile? thumbnailFile = await VideoThumbnail.thumbnailFile(
         video: videoUrl,
         thumbnailPath: (await getTemporaryDirectory()).path,
         imageFormat: ImageFormat.WEBP,
-        maxHeight:
-            64, // specify the height of the thumbnail, let the width auto-scaled to keep the source aspect ratio
+        maxHeight: 64, // specify the height of the thumbnail
         quality: 75,
       );
+
+      // Check if thumbnail is generated
       if (thumbnailFile != null) {
-        setState(() {
-          _videoThumbnailPath = thumbnailFile.path as String?;
-          isLoading = false;
-        });
-        debugPrint("✅ Thumbnail generated at: $_videoThumbnailPath");
+        if (mounted) {
+          setState(() {
+            _videoThumbnailPath = thumbnailFile.path; // Safe assignment
+            isLoading = false;
+          });
+          debugPrint("✅ Thumbnail generated at: $_videoThumbnailPath");
+        }
+      } else {
+        if (mounted) {
+          setState(() {
+            isLoading = false; // Stop loading if no thumbnail is found
+          });
+        }
       }
     } catch (e) {
       debugPrint("❌ Error generating thumbnail: $e");
-      setState(() => isLoading = false);
+      if (mounted) {
+        setState(() => isLoading = false); // Stop loading on error
+      }
     }
   }
 
@@ -80,6 +91,8 @@ class _ReplyMessageWidgetState extends State<ReplyMessageWidget> {
           else if (widget.replyTo!['type'] == 'document')
             _buildDocumentPreview(
                 widget.replyTo!['content'], widget.replyTo!['fileName'])
+          else if (widget.replyTo!['type'] == 'template')
+            _buildTemplatePreview(widget.replyTo!['template_name'])
           else
             const Text("Unsupported message type",
                 style: TextStyle(color: Colors.red)),
@@ -161,6 +174,22 @@ class _ReplyMessageWidgetState extends State<ReplyMessageWidget> {
         Expanded(
           child: Text(
             fileName ?? "Document",
+            style: const TextStyle(color: Colors.white),
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTemplatePreview(String? fileName) {
+    return Row(
+      children: [
+        const Icon(Icons.document_scanner, color: Colors.white),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Text(
+            fileName ?? "Template",
             style: const TextStyle(color: Colors.white),
             overflow: TextOverflow.ellipsis,
           ),

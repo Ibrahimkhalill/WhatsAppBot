@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart'; // Firestore dependency
-import 'package:whatapp/chat.dart';
-import 'package:whatapp/video_player.dart'; // Import VideoPlayerWidget
+import 'package:cargpt/video_player.dart'; // Import VideoPlayerWidget
 
 class VideoList extends StatefulWidget {
   final String phoneNumber; // Phone number for filtering
 
-  const VideoList({Key? key, required this.phoneNumber}) : super(key: key);
+  const VideoList({super.key, required this.phoneNumber});
 
   @override
   _VideoListState createState() => _VideoListState();

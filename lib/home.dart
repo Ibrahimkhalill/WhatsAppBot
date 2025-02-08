@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:intl/intl.dart'; // For formatting timestamps
-import 'package:whatapp/chat.dart';
-import 'package:whatapp/contact_list.dart';
+import 'package:cargpt/chat.dart';
+import 'package:cargpt/contact_list.dart';
 
 class HomeScreen extends StatefulWidget {
   @override
