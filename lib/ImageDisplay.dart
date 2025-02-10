@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:shimmer/shimmer.dart';
 
@@ -11,54 +13,83 @@ Widget buildImageWidget(String imageUrl) {
           baseColor: Colors.grey.shade300,
           highlightColor: Colors.grey.shade100,
           child: Container(
-            width: 200,
-            height: 200,
+            width: 230, // Max width
             color: Colors.grey.shade300, // Placeholder background
           ),
         ),
 
         // Actual image
-        SizedBox(
-          width: 200,
-          height: 200,
-          child: Image.network(
-            imageUrl,
+        LayoutBuilder(
+          builder: (context, constraints) {
+            double maxWidth = 230;
+            double aspectRatio = 1.0; // Default aspect ratio of 1:1
 
-            fit: BoxFit.cover, // Cover the box without distortion
-            loadingBuilder: (context, child, loadingProgress) {
-              if (loadingProgress == null) {
-                // Remove shimmer and show image when loaded
-                return child;
-              }
-              return const SizedBox
-                  .shrink(); // Show shimmer until loading completes
-            },
-            errorBuilder: (context, error, stackTrace) {
-              // Show error placeholder if image fails to load
-              return Container(
-                width: 200,
-                height: 200,
-                color: Colors.grey.shade300,
-                child: const Center(
-                  child: Icon(Icons.image_not_supported,
-                      color: Colors.grey, size: 50),
-                ),
-              );
-            },
-          ),
+            // Get the aspect ratio of the image
+            return FutureBuilder(
+              future: _getImageAspectRatio(imageUrl),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.done &&
+                    snapshot.hasData) {
+                  aspectRatio = snapshot.data as double;
+                }
+
+                double imageHeight = maxWidth /
+                    aspectRatio; // Adjust height based on aspect ratio
+
+                return SizedBox(
+                  width: maxWidth,
+                  height: imageHeight,
+                  child: Image.network(
+                    imageUrl,
+                    fit: BoxFit.contain, // Preserve aspect ratio
+                    loadingBuilder: (context, child, loadingProgress) {
+                      if (loadingProgress == null) {
+                        return child;
+                      }
+                      return const SizedBox
+                          .shrink(); // Show shimmer until loading completes
+                    },
+                    errorBuilder: (context, error, stackTrace) {
+                      return Container(
+                        width: maxWidth,
+                        height: imageHeight,
+                        color: Colors.grey.shade300,
+                        child: const Center(
+                          child: Icon(Icons.image_not_supported,
+                              color: Colors.grey, size: 50),
+                        ),
+                      );
+                    },
+                  ),
+                );
+              },
+            );
+          },
         ),
-
-        // Overlay text or spinner while loading
-        // Positioned.fill(
-        //   child: Container(
-        //     alignment: Alignment.center,
-        //     child: CircularProgressIndicator(
-        //       valueColor: AlwaysStoppedAnimation<Color>(Colors.grey.shade600),
-        //       strokeWidth: 2.0,
-        //     ),
-        //   ),
-        // ),
       ],
     ),
   );
+}
+
+// Helper function to get the aspect ratio of the image
+Future<double> _getImageAspectRatio(String imageUrl) async {
+  final image = NetworkImage(imageUrl);
+  final configuration = ImageConfiguration();
+  final imageStream = image.resolve(configuration);
+
+  final completer = Completer<double>();
+  imageStream.addListener(
+    ImageStreamListener(
+      (ImageInfo info, bool synchronousCall) {
+        final width = info.image.width;
+        final height = info.image.height;
+        final aspectRatio = width / height;
+        completer.complete(aspectRatio);
+      },
+      onError: (exception, stackTrace) {
+        completer.completeError(exception);
+      },
+    ),
+  );
+  return completer.future;
 }

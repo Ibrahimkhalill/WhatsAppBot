@@ -171,24 +171,6 @@ class _ChatState extends State<Chat> {
     return "00:00"; // Default if timestamp is null
   }
 
-  String _formatDateTime(DateTime timestamp) {
-    // Format date as "10 Oct"
-    String formattedDate = DateFormat('d MMM yy').format(timestamp);
-
-    // Format time as "11:52 PM"
-
-    // Combine date and time
-    return "$formattedDate "; // e.g., "10 Oct 11:52 PM"
-  }
-
-  String _formatMessageDate(dynamic timestamp) {
-    if (timestamp is DateTime) {
-      return _formatDateTime(
-          timestamp); // Use the combined date and time format
-    }
-    return "00:00"; // Default if timestamp is null or invalid
-  }
-
   void _onReactionSelect(String reaction) async {
     setState(() {
       _messages.map((message) {
