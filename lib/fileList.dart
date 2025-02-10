@@ -24,7 +24,7 @@ class _FileLinkListState extends State<FileLinkList> {
     try {
       // Query Firestore to get document messages filtered by phone number
       final snapshot = await FirebaseFirestore.instance
-          .collection('conversations')
+          .collection('conversation')
           .where('from',
               isEqualTo: widget.phoneNumber) // Filter by phone number
           .where('type', isEqualTo: 'document') // Filter by type: document

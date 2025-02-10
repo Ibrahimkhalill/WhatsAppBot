@@ -24,7 +24,7 @@ class _VideoListState extends State<VideoList> {
     try {
       // Query Firestore to filter by phone number and type: video
       final snapshot = await FirebaseFirestore.instance
-          .collection('conversations')
+          .collection('conversation')
           .where('from',
               isEqualTo: widget.phoneNumber) // Filter by phone number
           .where('type', isEqualTo: 'video') // Filter by type: video

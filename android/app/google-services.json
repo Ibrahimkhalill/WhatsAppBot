@@ -1,27 +1,36 @@
 {
   "project_info": {
-    "project_number": "748686934785",
-    "firebase_url": "https://chatbot-1833c-default-rtdb.firebaseio.com",
-    "project_id": "chatbot-1833c",
-    "storage_bucket": "chatbot-1833c.firebasestorage.app"
+    "project_number": "991914845428",
+    "project_id": "cargpt-sg",
+    "storage_bucket": "cargpt-sg.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:748686934785:android:b892fc8343761ee2dd5100",
+        "mobilesdk_app_id": "1:991914845428:android:87ed41f43bcfbf98722aa1",
         "android_client_info": {
           "package_name": "com.example.test_pk"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "991914845428-5t7ru9sdp0qget3orutcgg8dvh94q250.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
-          "current_key": "AIzaSyBCgZHNJyTozFcrI14ISEOoa8x1pWX_B4E"
+          "current_key": "AIzaSyDhllH4_opu1UHBHfA4x4voDJ-FqujibGw"
         }
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "991914845428-5t7ru9sdp0qget3orutcgg8dvh94q250.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }

@@ -38,7 +38,7 @@ class _ChatState extends State<Chat> {
 
   final FirebaseFirestore firestore = FirebaseFirestore.instance;
   final DatabaseReference _databaseReference =
-      FirebaseDatabase.instance.ref('conversations'); // Your table name here
+      FirebaseDatabase.instance.ref('conversation'); // Your table name here
 
   List<Map<String, dynamic>> _messages = [];
   final ScrollController _scrollController =
@@ -68,7 +68,7 @@ class _ChatState extends State<Chat> {
   void _filterMessagesByPhone() async {
     try {
       firestore
-          .collection('conversations')
+          .collection('conversation')
           .where('from', isEqualTo: widget.userId) // Firestore filter method
           .snapshots()
           .listen((snapshot) {

@@ -24,7 +24,7 @@ class _AudioListState extends State<AudioList> {
     try {
       // Query Firestore to get audio messages filtered by phone number
       final snapshot = await FirebaseFirestore.instance
-          .collection('conversations')
+          .collection('conversation')
           .where('from',
               isEqualTo: widget.phoneNumber) // Filter by phone number
           .where('type', isEqualTo: 'audio') // Filter by type: audio

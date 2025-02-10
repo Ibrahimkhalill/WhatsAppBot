@@ -76,7 +76,7 @@ class _HomeScreenState extends State<HomeScreen> {
             Expanded(
               child: StreamBuilder<QuerySnapshot>(
                 stream: firestore
-                    .collection('conversations')
+                    .collection('conversation')
                     .orderBy('timestamp', descending: true)
                     .snapshots(),
                 builder: (context, snapshot) {
@@ -86,13 +86,13 @@ class _HomeScreenState extends State<HomeScreen> {
 
                   if (snapshot.hasError) {
                     return const Center(
-                      child: Text('Error loading conversations'),
+                      child: Text('Error loading conversation'),
                     );
                   }
 
                   if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
                     return const Center(
-                      child: Text('No Conversations Found',
+                      child: Text('No Conversation Found',
                           style: TextStyle(color: Colors.white)),
                     );
                   }

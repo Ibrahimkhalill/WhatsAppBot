@@ -25,7 +25,7 @@ class _ImagesListState extends State<ImagesList> {
     try {
       // Query Firestore to get messages filtered by phone number and type
       final snapshot = await FirebaseFirestore.instance
-          .collection('conversations')
+          .collection('conversation')
           .where('from',
               isEqualTo: widget.phoneNumber) // Filter by phone number
           .where('type', isEqualTo: 'image') // Filter by type: image

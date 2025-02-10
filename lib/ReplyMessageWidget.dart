@@ -64,7 +64,7 @@ class _ReplyMessageWidgetState extends State<ReplyMessageWidget> {
 
   @override
   Widget build(BuildContext context) {
-    if (widget.replyTo == null) return const SizedBox.shrink();
+    if (widget.replyTo!['content'] == null) return const SizedBox.shrink();
 
     return Container(
       margin: const EdgeInsets.only(bottom: 2),

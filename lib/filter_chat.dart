@@ -8,7 +8,7 @@ class FilterMessagesByPhone extends StatefulWidget {
 
 class _FilterMessagesByPhoneState extends State<FilterMessagesByPhone> {
   final DatabaseReference _databaseReference =
-      FirebaseDatabase.instance.ref('conversations'); // Your table name here
+      FirebaseDatabase.instance.ref('conversation'); // Your table name here
 
   List<Map<String, dynamic>> _filteredMessages = [];
   final String _phoneNumberToFilter =
