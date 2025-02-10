@@ -13,13 +13,17 @@
           "projectId": "cargpt-sg",
           "configurations": {
             "android": "1:991914845428:android:87ed41f43bcfbf98722aa1",
-            "ios": "1:748686934785:ios:43b1a51e00c6c359dd5100",
-            "macos": "1:748686934785:ios:43b1a51e00c6c359dd5100",
-            "web": "1:748686934785:web:f5c8cf52c7a5e7b2dd5100",
-            "windows": "1:748686934785:web:d4c81cee74a1228ddd5100"
+            "ios": "1:991914845428:ios:98c23c979260627c722aa1",
+            "macos": "1:991914845428:ios:98c23c979260627c722aa1",
+            "web": "1:991914845428:web:1778dbaa412ab66b722aa1",
+            "windows": "1:991914845428:web:d3a2a3936e9d7334722aa1"
           }
         }
       }
     }
+  },
+  "firestore": {
+    "rules": "firestore.rules",
+    "indexes": "firestore.indexes.json"
   }
 }
