@@ -46,8 +46,15 @@ Widget buildImageWidget(String imageUrl) {
                       if (loadingProgress == null) {
                         return child;
                       }
-                      return const SizedBox
-                          .shrink(); // Show shimmer until loading completes
+                      return Shimmer.fromColors(
+                        baseColor: Colors.grey.shade300,
+                        highlightColor: Colors.grey.shade100,
+                        child: Container(
+                          width: maxWidth,
+                          height: imageHeight,
+                          color: Colors.grey.shade300,
+                        ),
+                      ); // Show shimmer effect until loading completes
                     },
                     errorBuilder: (context, error, stackTrace) {
                       return Container(

@@ -1,3 +1,4 @@
+import 'package:cargpt/global_variable.dart';
 import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
@@ -22,8 +23,8 @@ class _TemplatePreviewWidgetState extends State<TemplatePreviewWidget> {
   }
 
   Future<void> fetchTemplate(String templateName) async {
-    final url =
-        "https://evidently-deciding-insect.ngrok-free.app/api/templates"; // Replace with your backend URL
+    final url = '$BASE_URL/api/templates';
+    // "https://lamprey-included-lion.ngrok-free.app/api/templates"; // Replace with your backend URL
 
     try {
       final response = await http.get(Uri.parse(url));

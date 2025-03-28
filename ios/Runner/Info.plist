@@ -5,7 +5,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
-	<string>Test Pk</string>
+	<string>Cargpt</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -13,7 +13,7 @@
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>
-	<string>test_pk</string>
+	<string>cargpt</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
@@ -28,6 +28,8 @@
 	<string>LaunchScreen</string>
 	<key>UIMainStoryboardFile</key>
 	<string>Main</string>
+
+	<!-- Supported Device Orientations -->
 	<key>UISupportedInterfaceOrientations</key>
 	<array>
 		<string>UIInterfaceOrientationPortrait</string>
@@ -41,9 +43,52 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
+
+	<!-- Indirect Input Support -->
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+
+	<!-- 📌 Required Permissions Matching Android -->
+	
+	<!-- Internet Access -->
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsArbitraryLoads</key>
+		<true/>
+	</dict>
+
+	<!-- Contact Permissions -->
+	<key>NSContactsUsageDescription</key>
+	<string>This app requires access to your contacts to sync and manage contact information.</string>
+
+	<!-- External Storage Access -->
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>This app needs access to your photo library to upload and save images.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>This app needs permission to save images to your gallery.</string>
+	<key>NSDocumentsDirectoryUsageDescription</key>
+	<string>This app requires access to your documents for file storage.</string>
+
+	<!-- Background Services & Notifications -->
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>fetch</string>
+		<string>remote-notification</string>
+	</array>
+
+	<!-- Push Notifications -->
+	<key>NSUserNotificationUsageDescription</key>
+	<string>This app needs permission to send you notifications for important updates.</string>
+
+	<!-- Boot Completed (Used for background processing) -->
+	<key>NSBackgroundProcessingUsageDescription</key>
+	<string>This app runs background tasks to ensure real-time updates and notifications.</string>
+
+	<!-- Full-Screen Intent -->
+	<key>UIRequiresFullScreen</key>
+	<true/>
+
 </dict>
 </plist>

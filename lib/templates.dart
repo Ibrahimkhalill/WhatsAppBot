@@ -1,3 +1,4 @@
+import 'package:cargpt/global_variable.dart';
 import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
@@ -23,8 +24,7 @@ class _CatalogState extends State<Catalog> {
   }
 
   Future<void> fetchTemplates() async {
-    final url =
-        "https://evidently-deciding-insect.ngrok-free.app/api/templates";
+    final url = '$BASE_URL/api/templates';
 
     try {
       final response = await http.get(Uri.parse(url));
@@ -52,8 +52,7 @@ class _CatalogState extends State<Catalog> {
 
   Future<void> _sendTemplateMessage(
       String templateName, String languageCode) async {
-    final url =
-        "https://evidently-deciding-insect.ngrok-free.app/api/send-template";
+    final url = '$BASE_URL/api/send-template';
     print(widget.phoneNumber);
     final body = jsonEncode({
       "to": widget.phoneNumber, // ✅ Use the phone number from Home Page

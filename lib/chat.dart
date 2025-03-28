@@ -57,11 +57,16 @@ class _ChatState extends State<Chat> {
 
   void _scrollToBottom() {
     if (_scrollController.hasClients) {
-      _scrollController.animateTo(
-        _scrollController.position.maxScrollExtent,
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeOut,
-      );
+      final currentPosition = _scrollController.offset;
+      final maxExtent = _scrollController.position.maxScrollExtent;
+      // Only scroll if the user is already near the bottom (within 100 pixels)
+      if (maxExtent - currentPosition < 100) {
+        _scrollController.animateTo(
+          maxExtent,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOut,
+        );
+      }
     }
   }
 
@@ -119,11 +124,8 @@ class _ChatState extends State<Chat> {
 
     print('Sending message: $content');
 
-    // Store original message ID before resetting swipedMessage
-    var originalMessageId =
-        swipedMessage.isNotEmpty ? swipedMessage['id'] : null;
+    var originalMessageId = swipedMessage.isNotEmpty ? swipedMessage['id'] : null;
 
-    print('Sending message: $originalMessageId');
     setState(() {
       _messages.add({
         'id': _messages.length + 1,
@@ -134,7 +136,7 @@ class _ChatState extends State<Chat> {
         'from': widget.userId,
         'reply_to': swipedMessage.isNotEmpty ? swipedMessage : null,
         'timestamp': DateTime.now(),
-        'status': false, // Message sent but not yet delivered/read
+        'status': false,
       });
 
       swipedMessage = {}; // Reset the swiped message
@@ -142,10 +144,19 @@ class _ChatState extends State<Chat> {
 
     _messageController.clear();
 
-    // Send reply message if swipedMessage exists
+    // Scroll to bottom after the UI updates
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Future.delayed(const Duration(milliseconds: 100), () {
+        _scrollController.animateTo(
+          _scrollController.position.maxScrollExtent,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOut,
+        );
+      });
+    });
+
     if (originalMessageId != null) {
-      await sendReplyMessges(
-          content, widget.userId, widget.userName, originalMessageId);
+      await sendReplyMessges(content, widget.userId, widget.userName, originalMessageId);
     } else {
       await sendTextMessage(content, widget.userId, widget.userName);
     }
@@ -175,7 +186,7 @@ class _ChatState extends State<Chat> {
     setState(() {
       _messages.map((message) {
         if (message['message_id'] == selectedMessageId) {
-          message['reaction'] = reaction; // রিঅ্যাকশন সেট করা হচ্ছে
+          message['reaction'] = reaction; // Set reaction
         }
         return _messages;
       }).toList();
@@ -183,7 +194,7 @@ class _ChatState extends State<Chat> {
     await sendReactionMessges(
         reaction, widget.userId, widget.userName, selectedMessageId!);
     setState(() {
-      selectedMessageId = null; // রিঅ্যাকশন সিলেক্ট করার পরে বক্স বন্ধ করা
+      selectedMessageId = null; // Close reaction box after selection
     });
     print('Selected Reaction 3: $_messages'); // For debugging
   }
@@ -203,12 +214,10 @@ class _ChatState extends State<Chat> {
   Map<String, dynamic> swipedMessage = {};
 
   Widget _buildMessage(Map<String, dynamic> message) {
-    double screenWidth =
-        MediaQuery.of(context).size.width; // Get full screen width
+    double screenWidth = MediaQuery.of(context).size.width; // Get full screen width
     double maxWidth = screenWidth * 0.8; // Limit width to 60% of screen
     final bool isUser = message['sender'] == 'user';
-    final String? reaction =
-        message['reaction']; // Add reaction field in the message
+    final String? reaction = message['reaction']; // Add reaction field in the message
 
     return GestureDetector(
       onTap: () => downloadAndOpenDocument(message['public_url']),
@@ -225,7 +234,6 @@ class _ChatState extends State<Chat> {
                   message['public_url'] ??
                   'No content', // Default content if all are null
               'fileName': message['fileName'] ?? 'unknown',
-
               'type': message['type'] ?? 'unknown' // Default type if null
             };
           });
@@ -237,22 +245,15 @@ class _ChatState extends State<Chat> {
             children: [
               Container(
                 constraints: BoxConstraints(maxWidth: maxWidth),
-                margin:
-                    const EdgeInsets.symmetric(vertical: 12, horizontal: 10),
-
+                margin: const EdgeInsets.symmetric(vertical: 12, horizontal: 10),
                 padding: const EdgeInsets.only(
-                    bottom: 20,
-                    left: 5,
-                    right: 5,
-                    top:
-                        5), // Adjusted bottom padding to give space for reaction
+                    bottom: 20, left: 5, right: 5, top: 5),
                 decoration: BoxDecoration(
-                  color:
-                      isUser ? const Color(0xff244a37) : Colors.grey.shade800,
+                  color: isUser ? const Color(0xff244a37) : Colors.grey.shade800,
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Padding(
-                  padding: const EdgeInsets.only(bottom: 5),
+                  padding: const EdgeInsets.only(top: 5),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -262,11 +263,10 @@ class _ChatState extends State<Chat> {
                           ? ConstrainedBox(
                               constraints: BoxConstraints(
                                 minWidth: 75, // Minimum width of the text box
-                                maxWidth: MediaQuery.of(context).size.width *
-                                    0.7, // Max width (70% of screen)
+                                maxWidth: MediaQuery.of(context).size.width * 0.7,
                               ),
                               child: Container(
-                                padding: const EdgeInsets.only(bottom: 10),
+                                padding: const EdgeInsets.only(top: 10),
                                 child: Text(
                                   message['content'],
                                   style: const TextStyle(color: Colors.white),
@@ -280,47 +280,31 @@ class _ChatState extends State<Chat> {
                                       templateName: message['template_name'])
                                   : message['type'] == 'document'
                                       ? SizedBox(
-                                          width:
-                                              MediaQuery.sizeOf(context).width *
-                                                  0.8, //260
+                                          width: MediaQuery.sizeOf(context).width * 0.8,
                                           child: Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
+                                            crossAxisAlignment: CrossAxisAlignment.start,
                                             children: [
                                               Row(
                                                 children: [
-                                                  const Icon(
-                                                      Icons.insert_drive_file,
+                                                  const Icon(Icons.insert_drive_file,
                                                       color: Colors.white),
-                                                  const SizedBox(
-                                                      width:
-                                                          10), // Add spacing between the icon and text
+                                                  const SizedBox(width: 10),
                                                   Expanded(
                                                     child: Text(
-                                                      message['fileName'] ??
-                                                          'Unknown Document',
+                                                      message['fileName'] ?? 'Unknown Document',
                                                       style: const TextStyle(
-                                                          color: Colors.white,
-                                                          fontSize: 16),
-                                                      overflow: TextOverflow
-                                                          .ellipsis, // Truncate long file names
+                                                          color: Colors.white, fontSize: 16),
+                                                      overflow: TextOverflow.ellipsis,
                                                     ),
                                                   ),
                                                 ],
                                               ),
-                                              const SizedBox(
-                                                  height:
-                                                      5), // Add spacing between rows
+                                              const SizedBox(height: 5),
                                               Text(
-                                                formatFileSize(
-                                                    message['fileSize'] ??
-                                                        0), // Show file size
-                                                style: const TextStyle(
-                                                    color: Colors.grey),
+                                                formatFileSize(message['fileSize'] ?? 0),
+                                                style: const TextStyle(color: Colors.grey),
                                               ),
-                                              const SizedBox(
-                                                  height:
-                                                      10), // Add spacing before the button
+                                              const SizedBox(height: 10),
                                             ],
                                           ),
                                         )
@@ -329,99 +313,67 @@ class _ChatState extends State<Chat> {
                                               width: 50,
                                               height: 50,
                                               message['public_url'],
-                                              fit: BoxFit
-                                                  .cover, // Adjust fit as needed
-                                              loadingBuilder: (context, child,
-                                                  loadingProgress) {
+                                              fit: BoxFit.cover,
+                                              loadingBuilder: (context, child, loadingProgress) {
                                                 if (loadingProgress == null) {
-                                                  return child; // Image loaded successfully
+                                                  return child;
                                                 }
                                                 return const Center(
-                                                  child:
-                                                      CircularProgressIndicator(), // Show loader while loading
+                                                  child: CircularProgressIndicator(),
                                                 );
                                               },
                                             )
                                           : message['type'] == 'video'
                                               ? SizedBox(
-                                                  width: MediaQuery.of(context)
-                                                          .size
-                                                          .width *
-                                                      0.5,
+                                                  width: MediaQuery.of(context).size.width * 0.5,
+                                                 
                                                   child: VideoPlayerWidget(
-                                                    videoUrl:
-                                                        message['public_url'],
+                                                    videoUrl: message['public_url'],
                                                   ),
                                                 )
                                               : message['type'] == 'audio'
                                                   ? SizedBox(
-                                                      width: MediaQuery.sizeOf(
-                                                                  context)
-                                                              .width *
-                                                          0.8, //260
+                                                      width: MediaQuery.sizeOf(context).width * 0.8,
                                                       height: 42,
                                                       child: AudioPlayerWidget(
-                                                          audioUrl: message[
-                                                              'public_url']),
+                                                          audioUrl: message['public_url']),
                                                     )
-                                                  : message['type'] ==
-                                                          'uploading'
+                                                  : message['type'] == 'uploading'
                                                       ? TenMinuteProgress()
                                                       : const SizedBox.shrink(),
                     ],
                   ),
                 ),
               ),
-              if (isUser || !isUser) // Show status only for sent messages
+              if (isUser || !isUser)
                 Positioned(
-                  bottom: 18, // Align to bottom-right
-
+                  bottom: 18,
                   right: 15,
                   child: Row(
                     children: [
-                      // Display Time
                       Text(
-                        _formatTime(
-                            message['timestamp']), // Format timestamp to HH:mm
-                        style: const TextStyle(
-                          fontSize: 12,
-                          color: Colors.white70, // Adjust color as needed
-                        ),
+                        _formatTime(message['timestamp']),
+                        style: const TextStyle(fontSize: 12, color: Colors.white70),
                       ),
-                      const SizedBox(
-                          width: 5), // Space between time and checkmarks
-
-                      // Checkmarks
+                      const SizedBox(width: 5),
                       message['status'] == true
                           ? Stack(
                               children: [
-                                // First checkmark
-                                Icon(
-                                  Icons.check,
-                                  color: Colors.grey,
-                                  size: 16,
-                                ),
-                                // Second checkmark (Overlapping the first)
+                                Icon(Icons.check, color: Colors.grey, size: 16),
                                 Positioned(
-                                  left:
-                                      5, // Slightly shift the second checkmark to the right
-                                  child: Icon(
-                                    Icons.check,
-                                    color: Colors.grey,
-                                    size: 16,
-                                  ),
+                                  left: 5,
+                                  child: Icon(Icons.check, color: Colors.grey, size: 16),
                                 ),
                               ],
                             )
-                          : Icon(Icons.check,
-                              color: Colors.grey, size: 16), // Single check
+                          : Icon(Icons.check, color: Colors.grey, size: 16),
                     ],
                   ),
                 ),
               if (reaction != null)
                 Positioned(
-                  bottom: -1, // Ensure space for reaction
-                  right: 20, // Align to the bottom-right corner
+                  bottom: -1,
+                  right: 20,
                   child: Container(
                     width: 24,
                     height: 24,
@@ -475,9 +427,7 @@ class _ChatState extends State<Chat> {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _scrollToBottom();
       });
-      // Upload to backend and get public URL
-      await uploadFileToBackend(
-          file.path!, 'document', file.name, widget.userId, widget.userName);
+      await uploadFileToBackend(file.path!, 'document', file.name, widget.userId, widget.userName);
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _scrollToBottom();
       });
@@ -487,25 +437,18 @@ class _ChatState extends State<Chat> {
   void _openGalleryPicker() async {
     final ImagePicker picker = ImagePicker();
 
-    // Ask the user whether they want to pick an image or a video
-
     final XFile? image = await picker.pickImage(source: ImageSource.gallery);
     if (image != null) {
       final fileSize = await File(image.path).length(); // File size in bytes
       const maxImageSize = 5 * 1024 * 1024; // 5 MB in bytes
 
       if (fileSize > maxImageSize) {
-        // Show dialog for large image
-        _showFileSizeErrorDialog(
-          context,
-          'Image exceeds 5 MB. Please select a smaller file.',
-        );
+        _showFileSizeErrorDialog(context, 'Image exceeds 5 MB. Please select a smaller file.');
         return;
       }
 
       print('Selected an image');
 
-      // Add a temporary uploading message to the messages list
       final tempMessageId = DateTime.now().millisecondsSinceEpoch.toString();
       setState(() {
         _messages.add({
@@ -525,12 +468,7 @@ class _ChatState extends State<Chat> {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _scrollToBottom();
       });
-      // Upload to backend and get public URL
-      await uploadFileToBackend(
-          image.path, 'image', image.name, widget.userId, widget.userName);
-
-      // Update the temporary message in the messages list
-
+      await uploadFileToBackend(image.path, 'image', image.name, widget.userId, widget.userName);
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _scrollToBottom();
       });
@@ -546,17 +484,12 @@ class _ChatState extends State<Chat> {
       const maxVideoSize = 15 * 1024 * 1024; // 15 MB in bytes
 
       if (fileSize > maxVideoSize) {
-        // Show dialog for large video
-        _showFileSizeErrorDialog(
-          context,
-          'Video exceeds 15 MB. Please select a smaller file.',
-        );
+        _showFileSizeErrorDialog(context, 'Video exceeds 15 MB. Please select a smaller file.');
         return;
       }
 
       print('Selected a video');
 
-      // Add a temporary uploading message to the messages list
       final tempMessageId = DateTime.now().millisecondsSinceEpoch.toString();
       setState(() {
         _messages.add({
@@ -576,12 +509,7 @@ class _ChatState extends State<Chat> {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _scrollToBottom();
       });
-      // Upload to backend and get public URL
-      await uploadFileToBackend(
-          video.path, 'video', video.name, widget.userId, widget.userName);
-
-      // Update the temporary message in the messages list
-
+      await uploadFileToBackend(video.path, 'video', video.name, widget.userId, widget.userName);
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _scrollToBottom();
       });
@@ -614,7 +542,6 @@ class _ChatState extends State<Chat> {
     if (result != null) {
       PlatformFile file = result.files.first;
 
-      // Upload to backend and get public URL
       setState(() {
         _messages.add({
           'id': DateTime.now().millisecondsSinceEpoch.toString(),
@@ -631,8 +558,7 @@ class _ChatState extends State<Chat> {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _scrollToBottom();
       });
-      await uploadFileToBackend(
-          file.path!, 'audio', file.name, widget.userId, widget.userName);
+      await uploadFileToBackend(file.path!, 'audio', file.name, widget.userId, widget.userName);
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _scrollToBottom();
       });
@@ -643,15 +569,11 @@ class _ChatState extends State<Chat> {
     Navigator.push(
       context,
       MaterialPageRoute(
-          builder: (context) => Catalog(
-                phoneNumber: widget.userId,
-                name: widget.userName,
-              )),
+          builder: (context) => Catalog(phoneNumber: widget.userId, name: widget.userName)),
     );
   }
 
-  Widget _buildAttachmentButton(
-      String label, IconData icon, Color iconColor, VoidCallback onTap) {
+  Widget _buildAttachmentButton(String label, IconData icon, Color iconColor, VoidCallback onTap) {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -659,12 +581,12 @@ class _ChatState extends State<Chat> {
           width: 50,
           height: 50,
           decoration: BoxDecoration(
-            color: Colors.black.withOpacity(0.2), // Background color
-            shape: BoxShape.circle, // Circular shape
+            color: Colors.black.withOpacity(0.2),
+            shape: BoxShape.circle,
           ),
           child: IconButton(
             onPressed: onTap,
-            icon: Icon(icon, color: iconColor), // Use custom icon color
+            icon: Icon(icon, color: iconColor),
             iconSize: 25,
           ),
         ),
@@ -694,57 +616,32 @@ class _ChatState extends State<Chat> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
-                  _buildAttachmentButton(
-                    'Document', // Label
-                    Icons.insert_drive_file, // Icon
-                    Colors.blue, // Icon color
-                    () {
-                      Navigator.pop(context); // Close modal
-                      _openDocumentPicker(); // Perform action
-                    },
-                  ),
-                  _buildAttachmentButton(
-                    'Image',
-                    Icons.photo,
-                    Colors.purple,
-                    () {
-                      Navigator.pop(context); // Close modal
-                      _openGalleryPicker(); // Perform action
-                    },
-                  ),
-                  _buildAttachmentButton(
-                    'Video',
-                    Icons.video_file,
-                    Colors.purple,
-                    () {
-                      Navigator.pop(context); // Close modal
-                      openVideoPicker(); // Perform action
-                    },
-                  ),
+                  _buildAttachmentButton('Document', Icons.insert_drive_file, Colors.blue, () {
+                    Navigator.pop(context);
+                    _openDocumentPicker();
+                  }),
+                  _buildAttachmentButton('Image', Icons.photo, Colors.purple, () {
+                    Navigator.pop(context);
+                    _openGalleryPicker();
+                  }),
+                  _buildAttachmentButton('Video', Icons.video_file, Colors.purple, () {
+                    Navigator.pop(context);
+                    openVideoPicker();
+                  }),
                 ],
               ),
               const SizedBox(height: 10),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
-                  _buildAttachmentButton(
-                    'Audio',
-                    Icons.headphones,
-                    Colors.orange,
-                    () {
-                      Navigator.pop(context); // Close modal
-                      _openAudioPicker(); // Perform action
-                    },
-                  ),
-                  _buildAttachmentButton(
-                    'Templates',
-                    Icons.document_scanner,
-                    Colors.green,
-                    () {
-                      Navigator.pop(context); // Close modal
-                      _openCatalogPage(); // Perform action
-                    },
-                  ),
+                  _buildAttachmentButton('Audio', Icons.headphones, Colors.orange, () {
+                    Navigator.pop(context);
+                    _openAudioPicker();
+                  }),
+                  _buildAttachmentButton('Templates', Icons.document_scanner, Colors.green, () {
+                    Navigator.pop(context);
+                    _openCatalogPage();
+                  }),
                 ],
               ),
             ],
@@ -756,13 +653,8 @@ class _ChatState extends State<Chat> {
 
   Future<void> _saveContact(BuildContext context) async {
     try {
-      // Check for contact permissions
       if (await Permission.contacts.request().isGranted) {
-        // Check if the contact already exists
-        final existingContacts = await FlutterContacts.getContacts(
-          withProperties: true,
-          withPhoto: false,
-        );
+        final existingContacts = await FlutterContacts.getContacts(withProperties: true, withPhoto: false);
         final contactExists = existingContacts.any((contact) =>
             contact.phones.any((phone) => phone.number == widget.userId));
 
@@ -770,18 +662,15 @@ class _ChatState extends State<Chat> {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Contact already exists!')),
           );
-          return; // Exit the function if contact exists
+          return;
         }
 
-        // Proceed to save the contact if it doesn't exist
         final contact = Contact(
           name: Name(first: widget.userName),
           phones: [Phone(widget.userId)],
         );
 
-        // Open the phone's native Add Contact page
-        final bool added =
-            (await FlutterContacts.openExternalInsert(contact)) as bool;
+        final bool added = (await FlutterContacts.openExternalInsert(contact)) as bool;
 
         if (added) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -793,17 +682,12 @@ class _ChatState extends State<Chat> {
           );
         }
       } else {
-        // Permission denied
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Contacts permission is required!')),
         );
       }
     } catch (e) {
       print("Error saving contact: $e");
-      // ScaffoldMessenger.of(context).showSnackBar(
-      //   const SnackBar(
-      //       content: Text('An error occurred while saving contact!')),
-      // );
     }
   }
 
@@ -811,24 +695,17 @@ class _ChatState extends State<Chat> {
     final today = DateTime.now();
     final yesterday = today.subtract(Duration(days: 1));
 
-    // Check if the message is today
     if (_isSameDay(today, messageDate)) {
       return "Today";
-    }
-    // Check if the message is yesterday
-    else if (_isSameDay(yesterday, messageDate)) {
+    } else if (_isSameDay(yesterday, messageDate)) {
       return "Yesterday";
     } else {
-      // Format the date (you can use any format you prefer)
       return DateFormat('yyyy-MM-dd').format(messageDate);
     }
   }
 
-// Helper to compare if two dates are the same day
   bool _isSameDay(DateTime date1, DateTime date2) {
-    return date1.year == date2.year &&
-        date1.month == date2.month &&
-        date1.day == date2.day;
+    return date1.year == date2.year && date1.month == date2.month && date1.day == date2.day;
   }
 
   List<Widget> _buildMessageList() {
@@ -836,30 +713,23 @@ class _ChatState extends State<Chat> {
     DateTime? lastMessageDate;
 
     for (var message in _messages) {
-      DateTime messageDate =
-          DateTime.fromMillisecondsSinceEpoch(message['timestamp']);
+      DateTime messageDate = DateTime.fromMillisecondsSinceEpoch(message['timestamp']);
       String dateLabel = _getMessageDateLabel(messageDate);
 
-      // Add the date label if it's different from the last message's date
-      if (lastMessageDate == null ||
-          !_isSameDay(lastMessageDate, messageDate)) {
+      if (lastMessageDate == null || !_isSameDay(lastMessageDate, messageDate)) {
         messageWidgets.add(
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 8.0),
             child: Text(
               dateLabel,
-              style: const TextStyle(
-                  color: Colors.white70,
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold),
+              style: const TextStyle(color: Colors.white70, fontSize: 14, fontWeight: FontWeight.bold),
             ),
           ),
         );
       }
 
-      messageWidgets
-          .add(_buildMessage(message)); // Add the actual message widget
-      lastMessageDate = messageDate; // Update the last message date
+      messageWidgets.add(_buildMessage(message));
+      lastMessageDate = messageDate;
     }
 
     return messageWidgets;
@@ -887,8 +757,7 @@ class _ChatState extends State<Chat> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(widget.userName, style: TextStyle(fontSize: 16)),
-                  Text(widget.userId,
-                      style: TextStyle(fontSize: 12, color: Colors.white70)),
+                  Text(widget.userId, style: TextStyle(fontSize: 12, color: Colors.white70)),
                 ],
               ),
             ],
@@ -901,12 +770,9 @@ class _ChatState extends State<Chat> {
       ),
       body: Container(
         decoration: BoxDecoration(
-            image: DecorationImage(
-                image: AssetImage('assets/images/background.jpg'),
-                fit: BoxFit.cover)),
+            image: DecorationImage(image: AssetImage('assets/images/background.jpg'), fit: BoxFit.cover)),
         child: Column(
           children: [
-            // Action Buttons
             Container(
               color: Colors.black87,
               child: Padding(
@@ -921,19 +787,13 @@ class _ChatState extends State<Chat> {
                         _buildActionButton('Voice File', Icons.mic, () {
                           Navigator.push(
                             context,
-                            MaterialPageRoute(
-                                builder: (context) => AudioList(
-                                      phoneNumber: widget.userId,
-                                    )),
+                            MaterialPageRoute(builder: (context) => AudioList(phoneNumber: widget.userId)),
                           );
                         }),
                         _buildActionButton('Video File', Icons.videocam, () {
                           Navigator.push(
                             context,
-                            MaterialPageRoute(
-                                builder: (context) => VideoList(
-                                      phoneNumber: widget.userId,
-                                    )),
+                            MaterialPageRoute(builder: (context) => VideoList(phoneNumber: widget.userId)),
                           );
                         }),
                       ],
@@ -944,29 +804,19 @@ class _ChatState extends State<Chat> {
                         _buildActionButton('Link File', Icons.link, () {
                           Navigator.push(
                             context,
-                            MaterialPageRoute(
-                                builder: (context) => FileLinkList(
-                                      phoneNumber: widget.userId,
-                                    )),
+                            MaterialPageRoute(builder: (context) => FileLinkList(phoneNumber: widget.userId)),
                           );
                         }),
                         _buildActionButton('Image File', Icons.image, () {
                           Navigator.push(
                             context,
-                            MaterialPageRoute(
-                                builder: (context) => ImagesList(
-                                      phoneNumber: widget.userId,
-                                    )),
+                            MaterialPageRoute(builder: (context) => ImagesList(phoneNumber: widget.userId)),
                           );
                         }),
                         _buildActionButton('Chat File', Icons.chat, () {
                           Navigator.push(
                             context,
-                            MaterialPageRoute(
-                                builder: (context) => Chat(
-                                      userId: '',
-                                      userName: '',
-                                    )),
+                            MaterialPageRoute(builder: (context) => Chat(userId: '', userName: '')),
                           );
                         }),
                       ],
@@ -975,17 +825,12 @@ class _ChatState extends State<Chat> {
                 ),
               ),
             ),
-
-            // if (swipedMessage.isNotEmpty) _buildReplyContext(),
             Expanded(
-              child: ListView.builder(
+              child: ListView(
                 controller: _scrollController,
-                itemCount: _messages.length,
-                itemBuilder: (context, index) =>
-                    _buildMessage(_messages[index]),
+                children: _buildMessageList(),
               ),
             ),
-
             if (swipedMessage.isNotEmpty)
               ReplyContextWidget(
                 swipedMessage: swipedMessage,
@@ -1010,8 +855,7 @@ class _ChatState extends State<Chat> {
                           borderRadius: BorderRadius.circular(20),
                           borderSide: BorderSide.none,
                         ),
-                        contentPadding:
-                            const EdgeInsets.symmetric(horizontal: 15),
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 15),
                       ),
                       style: const TextStyle(color: Colors.white),
                     ),
@@ -1031,14 +875,12 @@ class _ChatState extends State<Chat> {
 
   Widget _buildActionButton(String label, IconData icon, VoidCallback onTap) {
     return ElevatedButton.icon(
-      onPressed: onTap, // Execute the navigation action
+      onPressed: onTap,
       icon: Icon(icon, color: Colors.green),
       label: Text(label, style: const TextStyle(color: Colors.white)),
       style: ElevatedButton.styleFrom(
         backgroundColor: const Color(0xff222222),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
       ),
     );

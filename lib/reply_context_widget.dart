@@ -1,3 +1,4 @@
+import 'package:cargpt/video_list.dart';
 import 'package:flutter/material.dart';
 import 'package:get_thumbnail_video/index.dart';
 import 'package:get_thumbnail_video/video_thumbnail.dart';

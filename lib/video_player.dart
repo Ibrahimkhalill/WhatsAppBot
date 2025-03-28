@@ -1,11 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
-import 'package:get_thumbnail_video/index.dart';
-import 'package:get_thumbnail_video/video_thumbnail.dart';
-import 'package:flutter/foundation.dart'; // for kIsWeb
-import 'package:path_provider/path_provider.dart';
-import 'package:http/http.dart' as http;
 
 class VideoPlayerWidget extends StatefulWidget {
   final String videoUrl;
@@ -19,14 +14,15 @@ class VideoPlayerWidget extends StatefulWidget {
 class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
   late VideoPlayerController _controller;
   bool _isLoading = true;
-  String? _videoThumbnailPath;
 
   @override
   void initState() {
     super.initState();
     _controller = VideoPlayerController.network(widget.videoUrl)
       ..initialize().then((_) {
-        _generateVideoThumbnail(widget.videoUrl); // Generate thumbnail
+        setState(() {
+          _isLoading = false; // Once the video is initialized, stop loading.
+        });
       });
   }
 
@@ -46,43 +42,6 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
     );
   }
 
-  /// Generate thumbnail from the video URL
-  Future<void> _generateVideoThumbnail(String videoUrl) async {
-    try {
-      final tempDir = await getTemporaryDirectory();
-      final localVideoPath = '${tempDir.path}/temp_video.mp4';
-
-      // Download the video file
-      final response = await http.get(Uri.parse(videoUrl));
-      if (response.statusCode == 200) {
-        File videoFile = File(localVideoPath);
-        await videoFile.writeAsBytes(response.bodyBytes);
-
-        // Generate thumbnail
-        XFile? thumbnailPath = await VideoThumbnail.thumbnailFile(
-          video: localVideoPath,
-          thumbnailPath: tempDir.path,
-          imageFormat: ImageFormat.JPEG,
-          maxHeight: 100,
-          quality: 75,
-        );
-
-        // Check if the widget is still mounted before calling setState
-        if (mounted && thumbnailPath != null) {
-          setState(() {
-            _videoThumbnailPath = thumbnailPath.path;
-            _isLoading = false;
-          });
-          debugPrint("✅ Thumbnail generated at: $_videoThumbnailPath");
-        }
-      } else {
-        debugPrint("❌ Failed to download video");
-      }
-    } catch (e) {
-      debugPrint("❌ Error generating thumbnail: $e");
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
@@ -97,7 +56,7 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
         child: Stack(
           alignment: Alignment.center,
           children: [
-            // Video Thumbnail Preview
+            // Video Player
             _isLoading
                 ? Container(
                     width: 200,
@@ -108,13 +67,13 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
                 : SizedBox(
                     width: videoWidth,
                     height: videoHeight,
-                    child: kIsWeb
-                        ? Image.network(_videoThumbnailPath!) // Web support
-                        : Image.file(
-                            File(_videoThumbnailPath!)), // Mobile support
+                    child: AspectRatio(
+                      aspectRatio: _controller.value.aspectRatio,
+                      child: VideoPlayer(_controller),
+                    ),
                   ),
 
-            // Play Icon Overlay
+            // Play/Pause Icon Overlay
             if (!_isLoading)
               Positioned(
                 child: GestureDetector(

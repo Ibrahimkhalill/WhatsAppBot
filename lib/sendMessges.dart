@@ -1,3 +1,4 @@
+import 'package:cargpt/global_variable.dart';
 import 'package:dio/dio.dart';
 
 Future<String?> uploadFileToBackend(String filePath, String fileType,
@@ -8,7 +9,7 @@ Future<String?> uploadFileToBackend(String filePath, String fileType,
     print(
         'Uploading file: $filePath, FileName: $fileName, FileType: $fileType, User: $userPhoneNumber');
     final response = await dio.post(
-      'https://evidently-deciding-insect.ngrok-free.app/send-media', // Replace with your API endpoint
+      '$BASE_URL/send-media', // Replace with your API endpoint
       data: FormData.fromMap({
         'file': await MultipartFile.fromFile(
           filePath,
@@ -37,10 +38,11 @@ Future<void> sendTextMessage(
   final Dio dio = Dio();
 
   try {
+    print('$BASE_URL');
     print('Text message asche : $messageBody');
     print('Text message 1 : $userPhoneNumber');
     final response = await dio.post(
-      'https://evidently-deciding-insect.ngrok-free.app/send-message', // Replace with your API endpoint
+      '$BASE_URL/send-message', // Replace with your API endpoint
       data: {
         'type': 'text', // Message type
         'body': messageBody, // The actual text message
@@ -65,7 +67,7 @@ Future<void> sendReactionMessges(String reaction, String userPhoneNumber,
   print('Text message sent successfully: $messageId');
   try {
     final response = await dio.post(
-      'https://evidently-deciding-insect.ngrok-free.app/send-reaction', // Replace with your API endpoint
+      '$BASE_URL/send-reaction', // Replace with your API endpoint
       data: {
         'reaction': reaction, // Message type
         'message_id': messageId, // The actual text message
@@ -94,7 +96,7 @@ Future<void> sendReplyMessges(
 
   try {
     final response = await dio.post(
-      'https://evidently-deciding-insect.ngrok-free.app/send-reply', // Replace with your API endpoint
+      '$BASE_URL/send-reply', // Replace with your API endpoint
       data: {
         'reply_message': replyMessage, // Message type
         'original_message_id': originalMessageId, // The actual text message
@@ -123,7 +125,7 @@ Future<void> uploadTemplates(
 
   try {
     final response = await dio.post(
-      'https://evidently-deciding-insect.ngrok-free.app/send-reply', // Replace with your API endpoint
+      '$BASE_URL/send-reply', // Replace with your API endpoint
       data: {
         'reply_message': replyMessage, // Message type
         'original_message_id': originalMessageId, // The actual text message

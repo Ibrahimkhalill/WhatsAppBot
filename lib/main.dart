@@ -1,6 +1,10 @@
+import 'package:cargpt/auth_controller.dart';
+import 'package:cargpt/login_screen.dart';
+import 'package:cargpt/notification_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:cargpt/home.dart';
+import 'package:get/get.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -17,6 +21,8 @@ void main() async {
       appId: "1:991914845428:android:87ed41f43bcfbf98722aa1",
     ),
   );
+  //Get.put(AuthController());
+  //Get.put(NotificationController()); // Initialize Notifications
   runApp(MyApp());
 }
 
@@ -25,13 +31,26 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return GetMaterialApp(
       debugShowCheckedModeBanner: false,
       theme: ThemeData.dark(),
-      home: Scaffold(
-        backgroundColor: Colors.black,
-        body: SafeArea(child: HomeScreen()),
-      ),
+      home: AuthCheck(), // Auto Login Check
     );
+  }
+}
+
+// Auto-Login Check Widget
+class AuthCheck extends StatelessWidget {
+  const AuthCheck({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    // Get.put(NotificationController());
+    return Obx(() {
+      final authController = Get.put(AuthController());
+      return authController.firebaseUser.value != null
+          ? HomeScreen()
+          : LoginScreen();
+    });
   }
 }

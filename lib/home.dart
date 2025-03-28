@@ -26,7 +26,7 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       backgroundColor: Colors.black,
       body: Padding(
-        padding: const EdgeInsets.all(10.0),
+        padding: const EdgeInsets.only(top: 40, left: 10, right: 10),
         child: Column(
           children: [
             // Search Bar
@@ -70,7 +70,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ],
               ),
             ),
-            const SizedBox(height: 10),
+            // const SizedBox(height: 10),
 
             // Chat List (StreamBuilder with Search Logic)
             Expanded(
