@@ -6,6 +6,8 @@ import 'package:cargpt/chat.dart';
 import 'package:cargpt/contact_list.dart';
 
 class HomeScreen extends StatefulWidget {
+  const HomeScreen({super.key});
+
   @override
   _HomeScreenState createState() => _HomeScreenState();
 }
@@ -26,7 +28,7 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       backgroundColor: Colors.black,
       body: Padding(
-        padding: const EdgeInsets.only(top: 40, left: 10, right: 10),
+        padding: const EdgeInsets.only(top: 50, left: 10, right: 10),
         child: Column(
           children: [
             // Search Bar
@@ -70,9 +72,6 @@ class _HomeScreenState extends State<HomeScreen> {
                 ],
               ),
             ),
-            // const SizedBox(height: 10),
-
-            // Chat List (StreamBuilder with Search Logic)
             Expanded(
               child: StreamBuilder<QuerySnapshot>(
                 stream: firestore

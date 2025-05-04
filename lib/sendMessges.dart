@@ -38,7 +38,7 @@ Future<void> sendTextMessage(
   final Dio dio = Dio();
 
   try {
-    print('$BASE_URL');
+    print(BASE_URL);
     print('Text message asche : $messageBody');
     print('Text message 1 : $userPhoneNumber');
     final response = await dio.post(

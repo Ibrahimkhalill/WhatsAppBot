@@ -3,6 +3,8 @@ import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:cargpt/chat.dart';
 
 class ContactListPage extends StatefulWidget {
+  const ContactListPage({super.key});
+
   @override
   _ContactListPageState createState() => _ContactListPageState();
 }
@@ -112,8 +114,8 @@ class _ContactListPageState extends State<ContactListPage> {
                         leading: CircleAvatar(
                           backgroundColor: Colors.grey,
                           child: Text(
-                            contact.displayName?.isNotEmpty == true
-                                ? contact.displayName![0].toUpperCase()
+                            contact.displayName.isNotEmpty == true
+                                ? contact.displayName[0].toUpperCase()
                                 : '?',
                             style: const TextStyle(color: Colors.white),
                           ),

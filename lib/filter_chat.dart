@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:firebase_database/firebase_database.dart';
 
 class FilterMessagesByPhone extends StatefulWidget {
+  const FilterMessagesByPhone({super.key});
+
   @override
   _FilterMessagesByPhoneState createState() => _FilterMessagesByPhoneState();
 }

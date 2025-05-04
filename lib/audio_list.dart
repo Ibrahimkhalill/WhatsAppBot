@@ -5,7 +5,7 @@ import 'package:cargpt/audio.dart';
 class AudioList extends StatefulWidget {
   final String phoneNumber; // Pass phone number for filtering
 
-  const AudioList({Key? key, required this.phoneNumber}) : super(key: key);
+  const AudioList({super.key, required this.phoneNumber});
 
   @override
   _AudioListState createState() => _AudioListState();

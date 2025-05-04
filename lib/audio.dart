@@ -1,10 +1,9 @@
-import 'package:audioplayers/audioplayers.dart';
+import 'package:flutter_sound/flutter_sound.dart';
 import 'package:flutter/material.dart';
 
 class AudioPlayerWidget extends StatefulWidget {
-  final String audioUrl;
-
-  const AudioPlayerWidget({Key? key, required this.audioUrl}) : super(key: key);
+  final String? audioUrl;
+  const AudioPlayerWidget({super.key, this.audioUrl});
 
   @override
   AudioPlayerWidgetState createState() => AudioPlayerWidgetState();
@@ -12,7 +11,7 @@ class AudioPlayerWidget extends StatefulWidget {
 
 class AudioPlayerWidgetState extends State<AudioPlayerWidget>
     with WidgetsBindingObserver {
-  late AudioPlayer _audioPlayer;
+  late FlutterSoundPlayer _audioPlayer;
   bool isPlaying = false;
   Duration duration = Duration.zero;
   Duration position = Duration.zero;
@@ -45,34 +44,30 @@ class AudioPlayerWidgetState extends State<AudioPlayerWidget>
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addObserver(this); // Observe app lifecycle changes
-    _audioPlayer = AudioPlayer();
+    WidgetsBinding.instance.addObserver(this);
+    _audioPlayer = FlutterSoundPlayer();
 
-    _audioPlayer.onDurationChanged.listen((newDuration) {
-      setState(() {
-        duration = newDuration;
-      });
-    });
-
-    _audioPlayer.onPositionChanged.listen((newPosition) {
-      setState(() {
-        position = newPosition;
-      });
-    });
-
-    _audioPlayer.onPlayerComplete.listen((event) {
-      setState(() {
-        isPlaying = false;
-        position = Duration.zero;
+    // Initialize the player
+    _audioPlayer.openPlayer().then((_) {
+      // Set subscription duration for progress updates
+      _audioPlayer.setSubscriptionDuration(Duration(milliseconds: 100));
+      // Listen for progress updates (position and duration)
+      _audioPlayer.onProgress!.listen((event) {
+        setState(() {
+          position = event.position;
+          duration = event.duration;
+          // Update isPlaying based on progress
+          isPlaying = event.position < event.duration;
+        });
       });
     });
   }
 
   @override
   void dispose() {
-    WidgetsBinding.instance.removeObserver(this); // Remove lifecycle observer
-    _audioPlayer.stop(); // Stop the audio playback
-    _audioPlayer.dispose(); // Release the audio player
+    WidgetsBinding.instance.removeObserver(this);
+    _audioPlayer.stopPlayer();
+    _audioPlayer.closePlayer(); // Release resources
     super.dispose();
   }
 
@@ -80,8 +75,7 @@ class AudioPlayerWidgetState extends State<AudioPlayerWidget>
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.paused ||
         state == AppLifecycleState.detached) {
-      // Pause or stop the audio when the app goes to the background
-      _audioPlayer.pause();
+      _audioPlayer.stopPlayer();
       setState(() {
         isPlaying = false;
       });
@@ -89,15 +83,48 @@ class AudioPlayerWidgetState extends State<AudioPlayerWidget>
   }
 
   Future<void> togglePlayPause() async {
-    if (isPlaying) {
-      await _audioPlayer.pause();
-    } else {
-      await _audioPlayer.play(UrlSource(widget.audioUrl));
+    if (widget.audioUrl == null || widget.audioUrl!.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('No valid audio URL provided')),
+      );
+      return;
     }
 
-    setState(() {
-      isPlaying = !isPlaying;
-    });
+    try {
+      String fileExtension = widget.audioUrl!.split('.').last.toLowerCase();
+      Codec codec = fileExtension == 'mpeg' ? Codec.mp3 : Codec.defaultCodec;
+
+      print('Playing: ${widget.audioUrl} with codec: $codec');
+      if (isPlaying) {
+        print('Stopping audio');
+        await _audioPlayer.stopPlayer();
+        setState(() {
+          isPlaying = false;
+          position = Duration.zero;
+        });
+      } else {
+        print('Starting audio');
+        await _audioPlayer.startPlayer(
+          fromURI: widget.audioUrl!,
+          codec: codec,
+          whenFinished: () {
+            print('Playback finished');
+            setState(() {
+              isPlaying = false;
+              position = Duration.zero;
+            });
+          },
+        );
+        setState(() {
+          isPlaying = true;
+        });
+      }
+    } catch (e, stackTrace) {
+      print('Audio error: $e\nStack trace: $stackTrace');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error playing audio: $e')),
+      );
+    }
   }
 
   String formatTime(Duration time) {
@@ -108,6 +135,15 @@ class AudioPlayerWidgetState extends State<AudioPlayerWidget>
 
   @override
   Widget build(BuildContext context) {
+    if (widget.audioUrl == null || widget.audioUrl!.isEmpty) {
+      return const Center(
+        child: Text(
+          'No audio available',
+          style: TextStyle(color: Colors.grey, fontSize: 12),
+        ),
+      );
+    }
+
     final filledBars = duration.inMilliseconds > 0
         ? ((position.inMilliseconds / duration.inMilliseconds) *
                 waveformData.length)
@@ -128,7 +164,7 @@ class AudioPlayerWidgetState extends State<AudioPlayerWidget>
               child: Container(
                 width: 40,
                 height: 40,
-                decoration: BoxDecoration(
+                decoration: const BoxDecoration(
                   color: Colors.green,
                   shape: BoxShape.circle,
                 ),
@@ -146,12 +182,14 @@ class AudioPlayerWidgetState extends State<AudioPlayerWidget>
                   final height = entry.value;
                   final isFilled = index < filledBars;
 
-                  return Container(
-                    width: MediaQuery.sizeOf(context).width * 0.019,
-                    height: height.toDouble(),
-                    decoration: BoxDecoration(
-                      color: isFilled ? Colors.green : Colors.grey,
-                      borderRadius: BorderRadius.circular(2),
+                  return Expanded(
+                    child: Container(
+                      height: height.toDouble(),
+                      margin: const EdgeInsets.symmetric(horizontal: 1),
+                      decoration: BoxDecoration(
+                        color: isFilled ? Colors.green : Colors.grey,
+                        borderRadius: BorderRadius.circular(2),
+                      ),
                     ),
                   );
                 }).toList(),

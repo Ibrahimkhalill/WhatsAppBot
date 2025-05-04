@@ -5,7 +5,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 class FileLinkList extends StatefulWidget {
   final String phoneNumber; // Pass phone number for filtering
 
-  const FileLinkList({Key? key, required this.phoneNumber}) : super(key: key);
+  const FileLinkList({super.key, required this.phoneNumber});
 
   @override
   _FileLinkListState createState() => _FileLinkListState();

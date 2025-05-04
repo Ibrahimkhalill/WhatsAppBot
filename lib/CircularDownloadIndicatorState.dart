@@ -2,6 +2,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 class TenMinuteProgress extends StatefulWidget {
+  const TenMinuteProgress({super.key});
+
   @override
   _TenMinuteProgressState createState() => _TenMinuteProgressState();
 }

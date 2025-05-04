@@ -59,19 +59,19 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
             // Video Player
             _isLoading
                 ? Container(
-                    width: 200,
-                    height: 200,
-                    color: Colors.black,
-                    child: const Center(child: CircularProgressIndicator()),
-                  )
+              width: 200,
+              height: 200,
+              color: Colors.black,
+              child: const Center(child: CircularProgressIndicator()),
+            )
                 : SizedBox(
-                    width: videoWidth,
-                    height: videoHeight,
-                    child: AspectRatio(
-                      aspectRatio: _controller.value.aspectRatio,
-                      child: VideoPlayer(_controller),
-                    ),
-                  ),
+              width: videoWidth,
+              height: videoHeight,
+              child: AspectRatio(
+                aspectRatio: _controller.value.aspectRatio,
+                child: VideoPlayer(_controller),
+              ),
+            ),
 
             // Play/Pause Icon Overlay
             if (!_isLoading)
@@ -117,6 +117,7 @@ class _FullscreenVideoPlayerState extends State<FullscreenVideoPlayer> {
   void dispose() {
     _controller.removeListener(_updateState);
     super.dispose();
+    _controller.pause();
   }
 
   void _updateState() {

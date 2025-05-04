@@ -10,7 +10,7 @@ class NotificationController extends GetxController {
   static NotificationController instance = Get.find();
   final FirebaseMessaging _firebaseMessaging = FirebaseMessaging.instance;
   final FlutterLocalNotificationsPlugin _flutterLocalNotificationsPlugin =
-      FlutterLocalNotificationsPlugin();
+  FlutterLocalNotificationsPlugin();
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   @override
@@ -26,14 +26,16 @@ class NotificationController extends GetxController {
 
     // Get FCM Token for debugging (Remove in production)
     String? token = await _firebaseMessaging.getToken();
-    await sendTokenToBackend(token!);
-    print("🔥 FCM Token: $token");
+    if (token != null) {
+      await sendTokenToBackend(token);
+      print("🔥 FCM Token: $token");
+    }
 
     // Initialize local notifications with click action
     const AndroidInitializationSettings androidInitSettings =
-        AndroidInitializationSettings('@mipmap/ic_launcher');
+    AndroidInitializationSettings('@mipmap/ic_launcher');
     final InitializationSettings initSettings =
-        InitializationSettings(android: androidInitSettings);
+    InitializationSettings(android: androidInitSettings);
 
     _flutterLocalNotificationsPlugin.initialize(
       initSettings,
@@ -61,14 +63,14 @@ class NotificationController extends GetxController {
     print("fromNumber, $fromNumber");
 
     const AndroidNotificationDetails androidDetails =
-        AndroidNotificationDetails(
+    AndroidNotificationDetails(
       'channel_id',
       'channel_name',
       importance: Importance.max,
       priority: Priority.high,
     );
     const NotificationDetails platformDetails =
-        NotificationDetails(android: androidDetails);
+    NotificationDetails(android: androidDetails);
     await _flutterLocalNotificationsPlugin.show(
       0,
       message.notification?.title ?? "",
@@ -102,9 +104,9 @@ class NotificationController extends GetxController {
 
         // Navigate to ChatPage
         Get.to(() => Chat(
-              userId: number,
-              userName: name,
-            ));
+          userId: number,
+          userName: name,
+        ));
       } else {
         print("❌ No matching conversation found.");
       }
